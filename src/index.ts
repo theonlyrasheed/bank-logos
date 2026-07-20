@@ -1,4 +1,3 @@
-// Main package entrypoint for @theonlyrasheed/bank-logos
 
 export { banks } from "./data/banks";
 
@@ -15,6 +14,7 @@ export {
   extractInitials,
   getBrandColor,
   generateInitialsSvg,
+  generateDefaultIconSvg,
   createBankImageProps,
 } from "./fallback";
 
@@ -30,6 +30,7 @@ export type {
   CountryCode,
   LogoOptions,
   FallbackSvgOptions,
+  DefaultIconSvgOptions,
   BankImageProps,
   NubanValidationResult,
 } from "./types";

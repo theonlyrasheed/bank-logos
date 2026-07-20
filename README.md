@@ -110,6 +110,26 @@ if (bank?.hasCustomLogo) {
 const defaultIconUrl = getBankLogo("unknown-bank-code", {
   fallbackType: "default-icon", // Returns CDN URL for default-image.svg
 });
+
+// 3b. Customize the default icon's color/size instead of using the static CDN file
+// Passing defaultIconOptions generates an inline, editable SVG Data URI
+const customDefaultIconUrl = getBankLogo("unknown-bank-code", {
+  fallbackType: "default-icon",
+  defaultIconOptions: {
+    color: "#FF6600",   // stroke color (default '#00AE99')
+    size: 48,            // default 64
+    strokeWidth: 1.5,    // default 1
+  },
+});
+
+// Or generate it directly
+import { generateDefaultIconSvg } from "@theonlyrasheed/bank-logos";
+
+const iconSvgString = generateDefaultIconSvg({
+  color: "#1E293B",
+  size: 32,
+  format: "svg-string", // 'data-uri' or 'svg-string'
+});
 ```
 
 ---
@@ -195,6 +215,7 @@ import { validateNuban } from "@theonlyrasheed/bank-logos/nuban";
 | `searchBanks(query, options?)` | `query: string, { limit?, category? }` | `readonly Bank[]` | Multi-field search across name, code, slug, USSD |
 | `getBankLogo(identifier, options?)` | `Bank \| string, LogoOptions?` | `string` | Resolves logo CDN URL or Initials SVG Data URI |
 | `generateInitialsSvg(name, options?)`| `name: string, FallbackSvgOptions?`| `string` | Generates SVG Initials badge Data URI or SVG string |
+| `generateDefaultIconSvg(options?)`| `DefaultIconSvgOptions?`| `string` | Generates the default vector bank icon with editable color/size/stroke-width |
 | `createBankImageProps(bank, options?)`| `Bank \| string, LogoOptions?` | `BankImageProps` | Returns `{ src, alt, onError }` for UI image fallback |
 | `validateNuban(accountNumber, bankCode)`| `accountNumber: string, bankCode: string` | `NubanValidationResult` | Validates 10-digit NUBAN against official CBN checksum |
 

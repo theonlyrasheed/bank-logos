@@ -76,6 +76,8 @@ export interface LogoOptions {
   fallbackType?: "initials-svg" | "default-icon";
   /** If true, returns dynamic SVG Initials Data URI when logo is missing (default true) */
   useInitialsFallback?: boolean;
+  /** Customize color/size/stroke-width when fallbackType is 'default-icon'. Generates an inline SVG Data URI instead of the static CDN file */
+  defaultIconOptions?: DefaultIconSvgOptions;
 }
 
 /**
@@ -90,6 +92,20 @@ export interface FallbackSvgOptions {
   textColor?: string;
   /** Custom initials override (e.g. "GTB", "FBN") */
   initials?: string;
+  /** Output format: 'data-uri' | 'svg-string' (default 'data-uri') */
+  format?: 'data-uri' | 'svg-string';
+}
+
+/**
+ * Options for generating the inline vector default bank icon (mirrors default-image.svg)
+ */
+export interface DefaultIconSvgOptions {
+  /** Square size in pixels (default 64) */
+  size?: number;
+  /** Hex, RGB, or named stroke color (default '#00AE99') */
+  color?: string;
+  /** Stroke width of the icon strokes (default 1) */
+  strokeWidth?: number;
   /** Output format: 'data-uri' | 'svg-string' (default 'data-uri') */
   format?: 'data-uri' | 'svg-string';
 }

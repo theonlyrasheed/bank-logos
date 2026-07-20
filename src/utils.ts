@@ -1,6 +1,6 @@
 import type { Bank, BankCategory, BankCode, BankSlug, Banks, CountryCode, LogoOptions } from "./types";
 import { banks } from "./data/banks";
-import { generateInitialsSvg } from "./fallback";
+import { generateDefaultIconSvg, generateInitialsSvg } from "./fallback";
 import { LOGO_FILES } from "./data/generated-logos";
 
 export interface GetBanksOptions {
@@ -179,6 +179,9 @@ export function getBankLogo(
   }
 
   if (options?.fallbackType === "default-icon" || options?.useInitialsFallback === false) {
+    if (options?.defaultIconOptions) {
+      return generateDefaultIconSvg({ format: "data-uri", ...options.defaultIconOptions });
+    }
     return `${baseUrl}/default-image.svg`;
   }
 
