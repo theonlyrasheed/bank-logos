@@ -104,6 +104,12 @@ if (bank?.hasCustomLogo) {
   });
   console.log("Fallback SVG Data URI:", fallbackBadge);
 }
+
+// 3. Using default-image.svg (Vector Bank Icon) as Fallback
+// Pass fallbackType: "default-icon" or useInitialsFallback: false to use default-image.svg
+const defaultIconUrl = getBankLogo("unknown-bank-code", {
+  fallbackType: "default-icon", // Returns CDN URL for default-image.svg
+});
 ```
 
 ---
