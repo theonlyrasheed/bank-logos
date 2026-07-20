@@ -1,0 +1,1 @@
+git add . && git commit -m "feat: release @theonlyrasheed/bank-logos v1.0.0" && pnpm publish --access public && git push --follow-tags

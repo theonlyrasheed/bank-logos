@@ -1,0 +1,74 @@
+{
+  "name": "bank-logos",
+  "version": "1.0.0",
+  "description": "Typed list of Nigerian and international banks with SVG & PNG logos, dynamic initials fallbacks, NUBAN validation, and search utilities for Node.js and browser.",
+  "license": "MIT",
+  "author": "theonlyrasheed <https://github.com/theonlyrasheed>",
+  "keywords": [
+    "nigeria",
+    "banks",
+    "bank",
+    "bank-logos",
+    "svg-logos",
+    "png-logos",
+    "naira",
+    "ussd",
+    "nuban",
+    "finance",
+    "typescript",
+    "dataset"
+  ],
+  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./nuban": {
+      "types": "./dist/nuban.d.ts",
+      "import": "./dist/nuban.js",
+      "require": "./dist/nuban.cjs"
+    },
+    "./fallback": {
+      "types": "./dist/fallback.d.ts",
+      "import": "./dist/fallback.js",
+      "require": "./dist/fallback.cjs"
+    }
+  },
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "prebuild": "node scripts/gen-logos.mjs",
+    "build": "node scripts/gen-logos.mjs && pnpm exec tsup",
+    "dev": "node scripts/gen-logos.mjs && pnpm exec tsup --watch",
+    "typecheck": "pnpm exec tsc -p tsconfig.json --noEmit",
+    "pretest": "node scripts/gen-logos.mjs",
+    "test": "pnpm exec vitest run",
+    "test:watch": "pnpm exec vitest"
+  },
+  "devDependencies": {
+    "tsup": "^8.4.0",
+    "typescript": "^5.8.3",
+    "vitest": "^2.1.9"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/theonlyrasheed/bank-logos.git"
+  },
+  "bugs": {
+    "url": "https://github.com/theonlyrasheed/bank-logos/issues"
+  },
+  "homepage": "https://github.com/theonlyrasheed/bank-logos#readme"
+}
