@@ -20,6 +20,16 @@ pnpm install
 
 ---
 
+## 🔒 Pull Request & Security Protection
+
+To protect the integrity of `@theonlyrasheed/bank-logos`:
+- **Direct pushes to `main` are disabled** for external contributors.
+- **Pull Requests (PRs)** are required for all contributions.
+- All PRs must pass automated **GitHub Actions CI checks** (`typecheck`, `test`, `build`) before review.
+- Code changes require approval from `@theonlyrasheed` (enforced via `.github/CODEOWNERS`).
+
+---
+
 ## 🎨 Adding or Updating Bank Logos (SVG / PNG)
 
 1. Place your high-resolution logo image inside `src/logos/`.
