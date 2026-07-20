@@ -1,0 +1,7 @@
+# CODEOWNERS for @theonlyrasheed/bank-logos
+# Ensures all pull requests and contributions require code owner review before merging.
+
+*                   @theonlyrasheed
+/src/               @theonlyrasheed
+/scripts/           @theonlyrasheed
+package.json        @theonlyrasheed

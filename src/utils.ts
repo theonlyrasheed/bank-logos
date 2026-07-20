@@ -167,14 +167,19 @@ export function getBankLogo(
   const slug = bank ? bank.slug : String(identifier).trim().toLowerCase();
   const customFile = LOGO_FILES[slug];
 
+  const baseUrl = options?.cdnBaseUrl ??
+    "https://raw.githubusercontent.com/theonlyrasheed/bank-logos/main/src/logos";
+
   if (customFile) {
-    const baseUrl = options?.cdnBaseUrl ??
-      "https://raw.githubusercontent.com/theonlyrasheed/bank-logos/main/src/logos";
     return `${baseUrl}/${customFile}`;
   }
 
   if (options?.fallbackUrl) {
     return options.fallbackUrl;
+  }
+
+  if (options?.fallbackType === "default-icon" || options?.useInitialsFallback === false) {
+    return `${baseUrl}/default-image.svg`;
   }
 
   // Generate dynamic Initials SVG badge by default

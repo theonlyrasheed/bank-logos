@@ -66,12 +66,14 @@ export type Banks = readonly Bank[];
  * Custom options for logo URL resolution
  */
 export interface LogoOptions {
-  /** Preferred image format ('svg' | 'png' | 'data-uri') */
-  format?: 'svg' | 'png' | 'data-uri';
+  /** Format preference: 'svg' | 'png' | 'data-uri' */
+  format?: "svg" | "png" | "data-uri";
   /** Custom CDN base URL override */
   cdnBaseUrl?: string;
   /** Custom fallback image URL or Data URI */
   fallbackUrl?: string;
+  /** Fallback icon style preference: 'initials-svg' (dynamic initials badge) | 'default-icon' (vector bank icon URL) */
+  fallbackType?: "initials-svg" | "default-icon";
   /** If true, returns dynamic SVG Initials Data URI when logo is missing (default true) */
   useInitialsFallback?: boolean;
 }

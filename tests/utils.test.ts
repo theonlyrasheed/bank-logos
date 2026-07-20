@@ -108,6 +108,9 @@ describe("@theonlyrasheed/bank-logos package test suite", () => {
     it("provides automatic fallback logo for unknown bank slugs", () => {
       const logo = getBankLogo("unknown-bank-slug");
       expect(logo.startsWith("data:image/svg+xml;utf8,")).toBe(true);
+
+      const defaultIconLogo = getBankLogo("unknown-bank-slug", { fallbackType: "default-icon" });
+      expect(defaultIconLogo).toBe("https://raw.githubusercontent.com/theonlyrasheed/bank-logos/main/src/logos/default-image.svg");
     });
 
     it("creates bank image props with onError recovery handler", () => {
