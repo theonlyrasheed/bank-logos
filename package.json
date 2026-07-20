@@ -1,5 +1,5 @@
 {
-  "name": "bank-logos",
+  "name": "@theonlyrasheed/bank-logos",
   "version": "1.0.0",
   "description": "Typed list of Nigerian and international banks with SVG & PNG logos, dynamic initials fallbacks, NUBAN validation, and search utilities for Node.js and browser.",
   "license": "MIT",
