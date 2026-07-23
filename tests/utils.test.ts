@@ -4,6 +4,7 @@ import {
   extractInitials,
   getBrandColor,
   validateNuban,
+  type Bank,
 } from "../src/index";
 import allBanks from "../src/all_banks.json";
 
@@ -148,6 +149,17 @@ describe("@theonlyrasheed/bank-logos package test suite", () => {
       expect(gt.startsWith("https://mycdn.com/logos/")).toBe(true);
     });
 
+    it("respects global fallbackType and useInitialsFallback settings", () => {
+      const custom = createBankLogos({
+        fallbackType: "default-icon",
+        defaultIcon: { color: "#abcdef" },
+      });
+
+      const icon = custom.getBankLogo("unknown-bank-slug");
+      expect(icon.startsWith("data:image/svg+xml;utf8,")).toBe(true);
+      expect(decodeURIComponent(icon)).toContain("#abcdef");
+    });
+
     it("supports a fully custom initials-svg renderer", () => {
       const custom = createBankLogos({
         renderInitialsSvg: ({ text }) => `<svg data-custom="true">${text}</svg>`,
@@ -187,6 +199,31 @@ describe("@theonlyrasheed/bank-logos package test suite", () => {
       const result = validateNuban("0000000018", "058");
       expect(result.calculatedCheckDigit).toBe(8);
       expect(result.isValid).toBe(true);
+    });
+  });
+
+  describe("TypeScript Generics", () => {
+    interface CustomBank extends Bank {
+      customProp?: string;
+    }
+
+    it("supports CustomBank type parameters", () => {
+      const customInstance = createBankLogos<CustomBank>({
+        customLogos: { "gtb": "https://example.com/gtb.svg" }
+      });
+
+      const list = customInstance.getBanks();
+      expect(list.length).toBeGreaterThan(0);
+      
+      const gtBank = customInstance.getBankByCode("058");
+      expect(gtBank?.slug).toBe("gtb");
+      
+      // We can assign custom properties on the typed return value
+      const extended: CustomBank = {
+        ...gtBank!,
+        customProp: "hello world"
+      };
+      expect(extended.customProp).toBe("hello world");
     });
   });
 });

@@ -43,6 +43,10 @@ export interface CreateBankLogosOptions extends ConfigureBankLogosOptions {
   defaultIcon?: DefaultIconSvgOptions;
   /** Default styling applied whenever an initials badge is generated (per-call options still win) */
   initialsOptions?: Omit<FallbackSvgOptions, "format">;
+  /** Default fallback behavior when a custom logo is unavailable ('initials' or 'default-icon') */
+  fallbackType?: "initials" | "default-icon";
+  /** If false, uses the generic vector building icon as fallback instead of initials */
+  useInitialsFallback?: boolean;
   /** Synchronous local overrides — your own SVG string, PNG/SVG URL, or data-uri — keyed by bank code or slug (case-insensitive) */
   customLogos?: Record<string, string>;
   /** Fully replace how the initials badge SVG markup is rendered */
@@ -52,26 +56,26 @@ export interface CreateBankLogosOptions extends ConfigureBankLogosOptions {
   // at creation time — see `ready`.
 }
 
-export interface BankLogosInstance {
+export interface BankLogosInstance<T extends Bank = Bank> {
   /** Immutable snapshot of all bundled banks (same as getBanks() with no filters) */
-  readonly banks: Banks;
+  readonly banks: readonly T[];
   /** Resolves once the initial manifest (if configured) has finished loading — never rejects */
   readonly ready: Promise<void>;
 
-  getBanks(options?: GetBanksOptions): Banks;
-  getBankBySlug(slug: BankSlug | string): Bank | undefined;
-  getBankByCode(code: BankCode | string): Bank | undefined;
-  getBankByName(name: string): Bank | undefined;
-  searchBanks(query: string, options?: SearchBanksOptions): Banks;
+  getBanks(options?: GetBanksOptions): readonly T[];
+  getBankBySlug(slug: BankSlug | string): T | undefined;
+  getBankByCode(code: BankCode | string): T | undefined;
+  getBankByName(name: string): T | undefined;
+  searchBanks(query: string, options?: SearchBanksOptions): readonly T[];
 
   /** Resolves logo URL or dynamic SVG Initials Data URI for a bank or bank slug/code */
-  getBankLogo(identifier: Bank | BankSlug | BankCode | string, options?: LogoOptions): string;
+  getBankLogo(identifier: T | BankSlug | BankCode | string, options?: LogoOptions): string;
   /** True when a dedicated logo exists — bundled, custom, or manifest-provided — rather than falling back to initials */
-  hasCustomLogoAsset(identifier: Bank | BankSlug | BankCode | string): boolean;
+  hasCustomLogoAsset(identifier: T | BankSlug | BankCode | string): boolean;
 
   generateInitialsSvg(nameOrInitials: string, options?: FallbackSvgOptions): string;
   generateDefaultIconSvg(options?: DefaultIconSvgOptions): string;
-  createBankImageProps(bankOrSlug: Bank | string, options?: LogoOptions): BankImageProps;
+  createBankImageProps(bankOrSlug: T | string, options?: LogoOptions): BankImageProps;
 
   /** Load/replace the remote manifest overlay for this instance */
   configureManifest(options: ConfigureBankLogosOptions): Promise<void>;
@@ -97,7 +101,7 @@ function normalizeLogoMap(input: Record<string, string> | undefined): Record<str
  * });
  * bankLogos.getBankLogo("058");
  */
-export function createBankLogos(options: CreateBankLogosOptions = {}): BankLogosInstance {
+export function createBankLogos<T extends Bank = Bank>(options: CreateBankLogosOptions = {}): BankLogosInstance<T> {
   const manifestStore = createManifestStore();
   const customLogos = normalizeLogoMap(options.customLogos);
   const cdnBaseUrl = options.cdnBaseUrl ?? DEFAULT_CDN_BASE_URL;
@@ -174,7 +178,10 @@ export function createBankLogos(options: CreateBankLogosOptions = {}): BankLogos
       return callOptions.fallbackUrl;
     }
 
-    if (callOptions?.fallbackType === "default-icon" || callOptions?.useInitialsFallback === false) {
+    const fallbackType = callOptions?.fallbackType ?? options.fallbackType ?? "initials";
+    const useInitials = callOptions?.useInitialsFallback ?? options.useInitialsFallback ?? true;
+
+    if (fallbackType === "default-icon" || useInitials === false) {
       if (callOptions?.defaultIconOptions || options.defaultIcon) {
         return generateDefaultIconSvg({ format: "data-uri", ...callOptions?.defaultIconOptions });
       }
@@ -198,7 +205,21 @@ export function createBankLogos(options: CreateBankLogosOptions = {}): BankLogos
     const bank = resolveBank(bankOrSlug);
     const bankName = bank ? bank.name : typeof bankOrSlug === "string" ? bankOrSlug : "";
     const src = getBankLogo(bankOrSlug, callOptions);
-    const fallbackUri = callOptions?.fallbackUrl ?? generateInitialsSvg(bankName, { format: "data-uri" });
+    const fallbackType = callOptions?.fallbackType ?? options.fallbackType ?? "initials";
+    const useInitials = callOptions?.useInitialsFallback ?? options.useInitialsFallback ?? true;
+
+    let fallbackUri = callOptions?.fallbackUrl;
+    if (!fallbackUri) {
+      if (fallbackType === "default-icon" || useInitials === false) {
+        if (callOptions?.defaultIconOptions || options.defaultIcon) {
+          fallbackUri = generateDefaultIconSvg({ format: "data-uri", ...callOptions?.defaultIconOptions });
+        } else {
+          fallbackUri = `${callOptions?.cdnBaseUrl ?? cdnBaseUrl}/default-image.svg`;
+        }
+      } else {
+        fallbackUri = generateInitialsSvg(bankName, { format: "data-uri" });
+      }
+    }
 
     return {
       src,
@@ -218,18 +239,18 @@ export function createBankLogos(options: CreateBankLogosOptions = {}): BankLogos
   const ready = (options.manifestUrl || options.manifest) ? configureManifest(options) : Promise.resolve();
 
   return {
-    banks: getBanks(),
+    banks: getBanks() as readonly T[],
     ready,
-    getBanks,
-    getBankBySlug,
-    getBankByCode,
-    getBankByName,
-    searchBanks,
-    getBankLogo,
-    hasCustomLogoAsset,
+    getBanks: (opts?: GetBanksOptions) => getBanks(opts) as readonly T[],
+    getBankBySlug: (slug: string) => getBankBySlug(slug) as T | undefined,
+    getBankByCode: (code: string) => getBankByCode(code) as T | undefined,
+    getBankByName: (name: string) => getBankByName(name) as T | undefined,
+    searchBanks: (query: string, opts?: SearchBanksOptions) => searchBanks(query, opts) as readonly T[],
+    getBankLogo: (identifier: T | BankSlug | BankCode | string, opts?: LogoOptions) => getBankLogo(identifier as Bank | string, opts),
+    hasCustomLogoAsset: (identifier: T | BankSlug | BankCode | string) => hasCustomLogoAsset(identifier as Bank | string),
     generateInitialsSvg,
     generateDefaultIconSvg,
-    createBankImageProps,
+    createBankImageProps: (bankOrSlug: T | string, opts?: LogoOptions) => createBankImageProps(bankOrSlug as Bank | string, opts),
     configureManifest,
   };
 }
