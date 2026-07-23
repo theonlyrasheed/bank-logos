@@ -1,22 +1,9 @@
 
 export { banks } from "./data/banks";
 
-export {
-  getBanks,
-  getBankBySlug,
-  getBankByCode,
-  getBankByName,
-  searchBanks,
-  getBankLogo,
-} from "./utils";
+export { createBankLogos } from "./factory";
 
-export {
-  extractInitials,
-  getBrandColor,
-  generateInitialsSvg,
-  generateDefaultIconSvg,
-  createBankImageProps,
-} from "./fallback";
+export { extractInitials, getBrandColor } from "./fallback";
 
 export { validateNuban } from "./nuban";
 
@@ -35,4 +22,19 @@ export type {
   NubanValidationResult,
 } from "./types";
 
-export { getBanks as default } from "./utils";
+export type { GetBanksOptions, SearchBanksOptions } from "./utils";
+
+export type {
+  BankLogoManifest,
+  ManifestFetchFn,
+  ManifestCache,
+  ConfigureBankLogosOptions,
+} from "./manifest";
+
+export type {
+  CreateBankLogosOptions,
+  BankLogosInstance,
+  InitialsRenderProps,
+} from "./factory";
+
+export { createBankLogos as default } from "./factory";

@@ -1,30 +1,24 @@
 import { describe, it, expect } from "vitest";
 import {
-  getBanks,
-  getBankByCode,
-  getBankBySlug,
-  getBankByName,
-  searchBanks,
-  getBankLogo,
+  createBankLogos,
   extractInitials,
   getBrandColor,
-  generateInitialsSvg,
-  createBankImageProps,
   validateNuban,
 } from "../src/index";
 import allBanks from "../src/all_banks.json";
 
 describe("@theonlyrasheed/bank-logos package test suite", () => {
+  const bankLogos = createBankLogos();
 
   describe("getBanks()", () => {
     it("returns all banks from JSON", () => {
-      const list = getBanks();
+      const list = bankLogos.getBanks();
       expect(Array.isArray(list)).toBe(true);
       expect(list.length).toBe(allBanks.length);
     });
 
     it("ensures each bank object has required fields and proper types", () => {
-      const list = getBanks();
+      const list = bankLogos.getBanks();
       for (const b of list) {
         expect(typeof b.id).toBe("string");
         expect(typeof b.name).toBe("string");
@@ -39,7 +33,7 @@ describe("@theonlyrasheed/bank-logos package test suite", () => {
     });
 
     it("can filter by category and sort", () => {
-      const commercial = getBanks({ category: "commercial", sortedBy: "name" });
+      const commercial = bankLogos.getBanks({ category: "commercial", sortedBy: "name" });
       expect(commercial.length).toBeGreaterThan(0);
       expect(commercial.every((b) => b.category === "commercial")).toBe(true);
 
@@ -52,32 +46,32 @@ describe("@theonlyrasheed/bank-logos package test suite", () => {
 
   describe("Lookups & Search", () => {
     it("finds bank by code (exact and padded)", () => {
-      const gt1 = getBankByCode("058");
-      expect(gt1?.slug).toBe("guaranty-trust-bank");
+      const gt1 = bankLogos.getBankByCode("058");
+      expect(gt1?.slug).toBe("gtb");
 
-      const gt2 = getBankByCode("58");
-      expect(gt2?.slug).toBe("guaranty-trust-bank");
+      const gt2 = bankLogos.getBankByCode("58");
+      expect(gt2?.slug).toBe("gtb");
     });
 
     it("finds bank by slug (case-insensitive)", () => {
-      const gt = getBankBySlug("Guaranty-Trust-Bank");
+      const gt = bankLogos.getBankBySlug("gtb");
       expect(gt?.code).toBe("058");
     });
 
     it("finds bank by name", () => {
-      const kuda = getBankByName("kuda bank");
+      const kuda = bankLogos.getBankByName("kuda bank");
       expect(kuda).toBeDefined();
-      expect(kuda?.slug).toBe("kuda-microfinance-bank");
+      expect(kuda?.slug).toBe("kuda-mfb");
     });
 
     it("searches across name, slug, code, and USSD", () => {
-      const searchFirst = searchBanks("first");
+      const searchFirst = bankLogos.searchBanks("first");
       expect(searchFirst.length).toBeGreaterThan(0);
       expect(searchFirst.some((b) => /first/i.test(b.name))).toBe(true);
 
-      const searchUssd = searchBanks("*737#");
+      const searchUssd = bankLogos.searchBanks("*737#");
       expect(searchUssd.length).toBe(1);
-      expect(searchUssd[0].slug).toBe("guaranty-trust-bank");
+      expect(searchUssd[0].slug).toBe("gtb");
     });
   });
 
@@ -90,41 +84,77 @@ describe("@theonlyrasheed/bank-logos package test suite", () => {
     });
 
     it("generates brand color hex or hsl string", () => {
-      expect(getBrandColor("guaranty-trust-bank")).toBe("#E04F00");
-      expect(getBrandColor("kuda-bank")).toBe("#4A154B");
+      expect(getBrandColor("gtb")).toBe("#E04F00");
+      expect(getBrandColor("kuda-mfb")).toBe("#4A154B");
       expect(getBrandColor("unknown-random-bank")).toMatch(/^(#|hsl)/);
     });
 
     it("generates SVG initials vector string and Data URI", () => {
-      const dataUri = generateInitialsSvg("Guaranty Trust Bank", { format: "data-uri" });
+      const dataUri = bankLogos.generateInitialsSvg("Guaranty Trust Bank", { format: "data-uri" });
       expect(dataUri.startsWith("data:image/svg+xml;utf8,")).toBe(true);
       expect(dataUri.includes("GTB")).toBe(true);
 
-      const rawSvg = generateInitialsSvg("Kuda Bank", { format: "svg-string" });
+      const rawSvg = bankLogos.generateInitialsSvg("Kuda Bank", { format: "svg-string" });
       expect(rawSvg.startsWith("<svg")).toBe(true);
       expect(rawSvg.includes("KB")).toBe(true);
     });
 
     it("provides automatic fallback logo for unknown bank slugs", () => {
-      const logo = getBankLogo("unknown-bank-slug");
+      const logo = bankLogos.getBankLogo("unknown-bank-slug");
       expect(logo.startsWith("data:image/svg+xml;utf8,")).toBe(true);
 
-      const defaultIconLogo = getBankLogo("unknown-bank-slug", { fallbackType: "default-icon" });
+      const defaultIconLogo = bankLogos.getBankLogo("unknown-bank-slug", { fallbackType: "default-icon" });
       expect(defaultIconLogo).toBe("https://raw.githubusercontent.com/theonlyrasheed/bank-logos/main/src/logos/default-image.svg");
     });
 
     it("creates bank image props with onError recovery handler", () => {
-      const bank = getBankBySlug("guaranty-trust-bank")!;
-      const props = createBankImageProps(bank);
+      const bank = bankLogos.getBankBySlug("gtb")!;
+      const props = bankLogos.createBankImageProps(bank);
 
       expect(props.src).toBe(bank.logo);
-      expect(props.alt).toBe("Guaranty Trust Bank logo");
+      expect(props.alt).toBe("GTBank Plc logo");
       expect(typeof props.onError).toBe("function");
 
       // Test onError execution
       const mockEvent = { currentTarget: { src: bank.logo } };
       props.onError!(mockEvent);
       expect(mockEvent.currentTarget.src.startsWith("data:image/svg+xml;utf8,")).toBe(true);
+    });
+  });
+
+  describe("createBankLogos() configuration", () => {
+    it("applies customLogos overrides synchronously, no manifest/network needed", () => {
+      const custom = createBankLogos({
+        customLogos: { "101": "https://example.com/providus.svg" },
+      });
+
+      expect(custom.getBankLogo("101")).toBe("https://example.com/providus.svg");
+      expect(custom.hasCustomLogoAsset("101")).toBe(true);
+      // Default instance is unaffected — isolated per-instance state.
+      expect(bankLogos.hasCustomLogoAsset("101")).toBe(false);
+    });
+
+    it("applies a custom default icon and cdnBaseUrl", () => {
+      const custom = createBankLogos({
+        cdnBaseUrl: "https://mycdn.com/logos",
+        defaultIcon: { color: "#123456" },
+      });
+
+      const icon = custom.getBankLogo("unknown-bank-slug", { fallbackType: "default-icon" });
+      expect(icon.startsWith("data:image/svg+xml;utf8,")).toBe(true);
+      expect(decodeURIComponent(icon)).toContain("#123456");
+
+      const gt = custom.getBankLogo("gtb");
+      expect(gt.startsWith("https://mycdn.com/logos/")).toBe(true);
+    });
+
+    it("supports a fully custom initials-svg renderer", () => {
+      const custom = createBankLogos({
+        renderInitialsSvg: ({ text }) => `<svg data-custom="true">${text}</svg>`,
+      });
+
+      const svg = custom.generateInitialsSvg("Kuda Bank", { format: "svg-string" });
+      expect(svg).toBe('<svg data-custom="true">KB</svg>');
     });
   });
 
@@ -159,5 +189,4 @@ describe("@theonlyrasheed/bank-logos package test suite", () => {
       expect(result.isValid).toBe(true);
     });
   });
-
 });

@@ -48,6 +48,9 @@ function createBankRecord(raw: any): Bank {
     ? `${RAW_BASE}/${file}`
     : generateInitialsSvg(name, { format: "data-uri" });
 
+  const country = raw.country ? String(raw.country).trim().toUpperCase() : "NG";
+  const nibss_bank_code = raw.nibss_bank_code ? String(raw.nibss_bank_code).trim() : undefined;
+
   return {
     id,
     name,
@@ -57,7 +60,8 @@ function createBankRecord(raw: any): Bank {
     logo,
     logoFormat,
     hasCustomLogo,
-    country: "NG",
+    country,
+    nibss_bank_code,
     category: inferCategory(name),
   };
 }

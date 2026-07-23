@@ -53,6 +53,8 @@ export interface Bank {
   readonly hasCustomLogo: boolean;
   /** ISO 2-letter country code for the bank (default 'NG') */
   readonly country: CountryCode;
+  /** NIBSS bank code (if applicable) */
+  readonly nibss_bank_code?: string;
   /** Classification of the bank institution */
   readonly category?: BankCategory;
 }

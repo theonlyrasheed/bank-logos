@@ -1,7 +1,5 @@
-import type { Bank, BankCategory, BankCode, BankSlug, Banks, CountryCode, LogoOptions } from "./types";
+import type { Bank, BankCategory, BankCode, BankSlug, Banks, CountryCode } from "./types";
 import { banks } from "./data/banks";
-import { generateDefaultIconSvg, generateInitialsSvg } from "./fallback";
-import { LOGO_FILES } from "./data/generated-logos";
 
 export interface GetBanksOptions {
   /** Filter by bank category (e.g. 'commercial', 'microfinance', 'fintech') */
@@ -86,15 +84,24 @@ export function getBankByName(name: string): Bank | undefined {
   const exact = banks.find((b) => b.name.toLowerCase() === cleanName);
   if (exact) return exact;
 
-  // Partial or normalized name match
+  const stem = (str: string) => {
+    return str
+      .replace(/micro-finance/g, "microfinance")
+      .replace(/\b(bank|microfinance|mfb|limited|ltd|plc|payment|service|mobile|yellow|money|and|loans|savings|mortgage)\b/g, "")
+      .replace(/[^a-z0-9]/g, "")
+      .trim();
+  };
+
+  const queryStem = stem(cleanName);
+  if (!queryStem) return undefined;
+
   return banks.find((b) => {
     const bankLower = b.name.toLowerCase();
     if (bankLower.includes(cleanName) || cleanName.includes(bankLower)) {
       return true;
     }
-    const cleanBankStem = bankLower.replace(/\b(bank|microfinance|mfb|limited|ltd|plc)\b/g, "").trim();
-    const cleanQueryStem = cleanName.replace(/\b(bank|microfinance|mfb|limited|ltd|plc)\b/g, "").trim();
-    return cleanBankStem.length > 0 && cleanBankStem === cleanQueryStem;
+    const bankStem = stem(bankLower);
+    return bankStem.length > 0 && (bankStem === queryStem || bankStem.includes(queryStem) || queryStem.includes(bankStem));
   });
 }
 
@@ -145,50 +152,4 @@ export function searchBanks(
   return Object.freeze(results);
 }
 
-/**
- * Resolves logo URL or dynamic SVG Initials Data URI for a bank or bank slug/code
- *
- * @example
- * const logoUrl = getBankLogo("guaranty-trust-bank");
- */
-export function getBankLogo(
-  identifier: Bank | BankSlug | BankCode | string,
-  options?: LogoOptions
-): string {
-  let bank: Bank | undefined;
-
-  if (typeof identifier === "object" && identifier !== null && "slug" in identifier) {
-    bank = identifier;
-  } else if (typeof identifier === "string") {
-    bank = getBankBySlug(identifier) || getBankByCode(identifier) || getBankByName(identifier);
-  }
-
-  const bankName = bank ? bank.name : String(identifier);
-  const slug = bank ? bank.slug : String(identifier).trim().toLowerCase();
-  const customFile = LOGO_FILES[slug];
-
-  const baseUrl = options?.cdnBaseUrl ??
-    "https://raw.githubusercontent.com/theonlyrasheed/bank-logos/main/src/logos";
-
-  if (customFile) {
-    return `${baseUrl}/${customFile}`;
-  }
-
-  if (options?.fallbackUrl) {
-    return options.fallbackUrl;
-  }
-
-  if (options?.fallbackType === "default-icon" || options?.useInitialsFallback === false) {
-    if (options?.defaultIconOptions) {
-      return generateDefaultIconSvg({ format: "data-uri", ...options.defaultIconOptions });
-    }
-    return `${baseUrl}/default-image.svg`;
-  }
-
-  // Generate dynamic Initials SVG badge by default
-  return generateInitialsSvg(bankName, {
-    format: "data-uri",
-  });
-}
-
-export type { Bank, Banks, BankSlug, BankCode, BankCategory, LogoFormat, CountryCode, LogoOptions } from "./types";
+export type { Bank, Banks, BankSlug, BankCode, BankCategory, CountryCode } from "./types";
